@@ -9,22 +9,11 @@
 
 int ppm[channel_number];
 
-/* NOT USE
-struct RCData {
-  long throttle;
-  long yaw;
-  long pitch;
-  long roll;
-  long AUX1;
-  long AUX2;
-};
-RCData outData;
-*/
 String inData;
 
 
 unsigned long timer;
-unsigned long INTERVAL = 100;
+unsigned long INTERVAL = 1000;
 
 void readInput() {
   while (Serial.available() > 0)
@@ -66,14 +55,7 @@ void processInput(String line) {
       pieces[counter] = line.substring(lastIndex, i);
     }
   }
-  /*
-    outData.throttle = pieces[0].toInt();
-    outData.yaw      = pieces[1].toInt();
-    outData.pitch    = pieces[2].toInt();
-    outData.roll     = pieces[3].toInt();
-    outData.AUX1     = pieces[4].toInt();
-    outData.AUX2     = pieces[5].toInt();
-  */
+
 
   ppm[0] = pieces[0].toInt();
   ppm[1] = pieces[1].toInt();
@@ -114,10 +96,20 @@ void output() {
   Serial.print("Aux2: ");     Serial.print(ppm[5]);       Serial.print("\n");
 }
 
+void resetRCData(){
+  ppm[0] = 0;
+  ppm[1] = 1500;
+  ppm[2] = 1500;
+  ppm[3] = 1500;
+  ppm[4] = 1000;
+  ppm[5] = 1000;
+}
+
 void loop() {
   readInput();
-  if ((millis() - timer) > INTERVAL) {
-    output();
+  unsigned long now = millis();
+  if ((now - timer) > INTERVAL) {
+
     timer = timer + INTERVAL;
   }
 }
