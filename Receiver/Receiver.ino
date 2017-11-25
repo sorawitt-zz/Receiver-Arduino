@@ -19,19 +19,69 @@ void readInput() {
   while (Serial.available() > 0)
   {
     char received = Serial.read();
+
     inData += received;
 
     // Process message when new line character is recieved
     if (received == '\n')
     {
-      processInput(inData);
+      //processInput(inData);
+      processInputs(inData);
       inData = ""; // Clear recieved buffer
     }
   }
 }
+void processInputs(String line) {
+  const int numberOfPieces = line.length();
+  String pieces[numberOfPieces];
+  str.toCharArray(char_array, str_len);
+  int counter = 0;
+  int lastIndex = 0;
+
+  for (int i = 0; i < line.length(); i++) {
+    // Loop through each character and check if it's a comma
+    if (line.substring(i, i + 1) == ",") {
+      // Grab the piece from the last index up to the current position and store it
+      pieces[counter] = line.substring(lastIndex, i);
+      // Update the last position and add 1, so it starts from the next character
+      lastIndex = i + 1;
+      // Increase the position in the array that we store into
+      counter++;
+    }
+
+    // If we're at the end of the string (no more commas to stop us)
+    if (i == line.length() - 1) {
+      // Grab the last part of the string from the lastIndex to the end
+      pieces[counter] = line.substring(lastIndex, i);
+    }
+  }
+
+}
+void processCommands(char cmd) {
+  switch (cmd) {
+    case 't':
+      takeOff();
+      break;
+    case 'd':
+      land();
+      break;
+    case 'l':
+      turnLeft();
+      break;
+    case 'r':
+      turnRight();
+      break;
+    case 'f':
+      moveForward();
+      break;
+    case 'b':
+      moveBackward();
+      break;
+  }
+}
 
 void processInput(String line) {
- // Serial.print("msg: ");
+  // Serial.print("msg: ");
   //Serial.print(line);
   const int numberOfPieces = 6;
   String pieces[numberOfPieces];
@@ -80,10 +130,16 @@ void setupPPM() {
   sei();
 }
 
+void setupRC_Data() {
+
+}
+
 void setup() {
   setupPPM();
+  resetRCData();
   Serial.begin(115200);
   timer = millis();
+
 }
 
 
@@ -96,14 +152,68 @@ void output() {
   Serial.print("Aux2: ");     Serial.print(ppm[5]);       Serial.print("\n");
 }
 
-void resetRCData(){
-  ppm[0] = 0;
-  ppm[1] = 1500;
-  ppm[2] = 1500;
-  ppm[3] = 1500;
-  ppm[4] = 1000;
-  ppm[5] = 1000;
+void resetRCData() {
+  ppm[0] = 0;       //throttle
+  ppm[1] = 1500;    //roll
+  ppm[2] = 1500;    //pitch
+  ppm[3] = 1500;    //yaw
+  ppm[4] = 1000;    //aux1
+  ppm[5] = 1000;    //aux2
 }
+
+void arm() {
+  ppm[0] = 0;       //throttle
+  ppm[1] = 1500;    //roll
+  ppm[2] = 1500;    //pitch
+  ppm[3] = 1500;    //yaw
+  ppm[4] = 2000;    //aux1
+  ppm[5] = 1000;    //aux2
+}
+
+void disArm() {
+  ppm[0] = 0;       //throttle
+  ppm[1] = 1500;    //roll
+  ppm[2] = 1500;    //pitch
+  ppm[3] = 1500;    //yaw
+  ppm[4] = 1500;    //aux1
+  ppm[5] = 1000;    //aux2
+}
+
+
+int throttleMin = 1000;
+int stickMiddle = 1500;
+int stickMin = 1000;
+int stickMax = 2000;
+
+int targetRate = 50;
+int targetThrottle = throttleMin;
+int targetPitch = stickMiddle;
+int targetRoll = stickMiddle;
+
+
+int throttle = throttleMin;
+int yaw = stickMiddle;
+int pitch = stickMiddle;
+int roll = stickMiddle;
+
+void takeOff() {
+  targetThrottle = 1800;
+  while (throttle < targetThrottle) {
+    throttle = throttle + targetRate;
+    ppm[0] = throttle;
+    delay(500);
+  }
+}
+
+void land() {
+  targetThrottle = 1000;
+  while (throttle > targetThrottle) {
+    throttle = throttle - targetRate;
+    ppm[0] = throttle;
+    delay(500);
+  }
+}
+
 
 void loop() {
   readInput();
@@ -112,6 +222,78 @@ void loop() {
 
     timer = timer + INTERVAL;
   }
+}
+
+void moveForward() {
+  targetPitch = 1800;
+  while (targetPitch > pitch) {
+    pitch = pitch + targetRate;
+    ppm[2] = pitch;
+    delay(500);
+  }
+  targetPitch = 1500;
+  while (targetPitch < pitch) {
+    pitch = pitch - targetRate;
+    ppm[2] = pitch;
+    delay(500);
+  }
+}
+
+void moveBackward() {
+  targetPitch = 1200;
+  while (targetPitch < pitch) {
+    pitch = pitch - targetRate;
+    ppm[2] = pitch;
+    delay(500);
+  }
+  targetPitch = 1500;
+  while (targetPitch > pitch) {
+    pitch = pitch + targetRate;
+    ppm[2] = pitch;
+    delay(500);
+  }
+}
+
+void turnLeft() {
+  targetRoll = 1200;
+  while (targetRoll < roll) {
+    roll = roll - targetRate;
+    ppm[1] = roll;
+    delay(500);
+  }
+  targetRoll = 1500;
+  while (targetRoll > roll) {
+    roll = roll + targetRate;
+    ppm[1] = roll;
+    delay(500);
+  }
+}
+
+void turnRight() {
+  targetRoll = 1800;
+  while (targetRoll > roll) {
+    roll = roll + targetRate;
+    ppm[1] = roll;
+    delay(500);
+  }
+  targetRoll = 1500;
+  while (targetRoll < roll) {
+    roll = roll - targetRate;
+    ppm[1] = roll;
+    delay(500);
+  }
+}
+
+void wait(int second) {
+  delay(second * 1000);
+}
+
+void wait1S() {
+  delay(1000);
+}
+
+void wait2S() {
+  delay(2000);
 }
 
 
