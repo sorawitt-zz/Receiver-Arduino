@@ -32,29 +32,36 @@ void readInput() {
   }
 }
 void processInputs(String line) {
-  const int numberOfPieces = line.length();
-  String pieces[numberOfPieces];
-  str.toCharArray(char_array, str_len);
-  int counter = 0;
-  int lastIndex = 0;
-
-  for (int i = 0; i < line.length(); i++) {
-    // Loop through each character and check if it's a comma
-    if (line.substring(i, i + 1) == ",") {
-      // Grab the piece from the last index up to the current position and store it
-      pieces[counter] = line.substring(lastIndex, i);
-      // Update the last position and add 1, so it starts from the next character
-      lastIndex = i + 1;
-      // Increase the position in the array that we store into
-      counter++;
-    }
-
-    // If we're at the end of the string (no more commas to stop us)
-    if (i == line.length() - 1) {
-      // Grab the last part of the string from the lastIndex to the end
-      pieces[counter] = line.substring(lastIndex, i);
-    }
+  for(int i =0;i<line.length();i++){
+    processCommands(line[i]);
   }
+
+//  const int numberOfPieces = line.length();
+//  String pieces[numberOfPieces];
+//  //str.toCharArray(char_array, str_len);
+//  int counter = 0;
+//  int lastIndex = 0;
+//
+//  for (int i = 0; i < line.length(); i++) {
+//    // Loop through each character and check if it's a comma
+//    //if (line.substring(i, i + 1) == ",") {
+//      // Grab the piece from the last index up to the current position and store it
+//      pieces[counter] = line.substring(lastIndex, i);
+//      // Update the last position and add 1, so it starts from the next character
+//      lastIndex = i + 1;
+//      // Increase the position in the array that we store into
+//      counter++;
+//    //}
+//
+//    // If we're at the end of the string (no more commas to stop us)
+//    if (i == line.length() - 1) {
+//      // Grab the last part of the string from the lastIndex to the end
+//      pieces[counter] = line.substring(lastIndex, i);
+//    }
+//  }
+//  for(int j = 0; j<counter-1;j++){
+//    //processCommands(pieces[j]);
+//  }
 
 }
 void processCommands(char cmd) {
